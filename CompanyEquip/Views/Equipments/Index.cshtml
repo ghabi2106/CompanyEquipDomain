@@ -1,0 +1,86 @@
+﻿@model PagedList.IPagedList<Models.EquipmentModel>
+@using PagedList.Mvc;
+@using Resources;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Equipments";
+}
+
+<h2>Equipments</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+@using (Html.BeginForm("Index", "Equipments", FormMethod.Get))
+{
+    <p>
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Search" />
+    </p>
+}
+<table class="table">
+    <tr>
+        <th>
+            @Html.ActionLink("SerialNumber", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+        </th>
+        <th>
+            @Html.ActionLink("Name", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+        </th>
+        <th>
+            @Html.ActionLink("Images", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+        </th>
+        <th>
+            @Html.ActionLink("Date", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        /* The images stored as Binary data will be fetched as BYTE Array and then, the BYTE Array will be converted to BASE 64 string and then displayed in View in ASP.NET MVC 5 */
+
+        /* Other Method : Insert image into folder and insert image path into database and display image in view from image folder based on path given(stored) in database. */
+
+        var imgSrc = "";
+        if (item.Image != null)
+        {
+            var base64 = Convert.ToBase64String(item.Image);
+            imgSrc = String.Format("data:image/gif;base64,{0}", base64);
+        }
+        else
+        {
+            imgSrc = null;
+        }
+        using (Html.BeginForm("Delete", "Equipments", new { id = item.Id }))
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SerialNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    <img src="@imgSrc" style="max-width:100px; max-height:100px" />
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.NextControlDate)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
+                    @Html.ActionLink("Details", "Details", new { id = item.Id }) |
+                    <input type="submit" value="Delete" />
+                    @*@Html.ActionLink("Delete", "Delete", new { id = item.Id },
+                        new { onclick = "return confirm('Do you really want to delete the tag " + @item.Name + "?')" })*@
+                </td>
+            </tr>
+        }
+    }
+</table>
+<br />
+Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+    new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))
+
